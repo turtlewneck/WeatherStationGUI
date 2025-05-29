@@ -19,6 +19,9 @@ class Application(CTk):
         random.seed(5)
         # self.place_bar()
 
+
+        self.read_from_file = ReadFile(self)
+
         # self.frame = CTkFrame(self)
         # self.frame.pack(expand=True, fill=BOTH)
 
@@ -48,7 +51,10 @@ class Application(CTk):
         self.canvas = tk.Canvas(self, width=150, height=350)
         self.canvas.pack()
         
-        self.draw_temperature_bar(random.random())
+        self.read_from_file.read_file()
+
+        self.update_temperature()
+        # self.draw_temperature_bar(random.random())
         # while True:
         
         self.mainloop()
@@ -60,6 +66,12 @@ class Application(CTk):
         else:
             self._set_appearance_mode("light")
             self.btn.configure(require_redraw=True, bg_color="gray92")
+
+    def update_temperature(self):
+        temp = random.randint(0, 100)
+        data = self.read_from_file.data_sheet
+        self.draw_temperature_bar(data[len(data)-1])
+        self.after(1000, self.update_temperature)
 
     def draw_temperature_bar(self, temp, max_temp=100):
         self.canvas.delete("all")
@@ -83,15 +95,33 @@ class Application(CTk):
                                 x_offset + bar_width, y_offset + bar_height,
                                 fill="red")
         
-        self.after(1000, self.draw_temperature_bar(random.random()))
+        # self.after(1000, self.draw_temperature_bar(random.random()))
         
 
 
 
 class ReadFile():
-    def __init__(self):
-        pass
-    # def set_mode(self):
+    def __init__(self, application):
+        self.application = application
+        self.last_read = 0
+        self.iterator = 0
+        self.data_sheet = []
+    def read_file(self):
+        try:
+            with open("C:\\Users\\studentwftims.LAB\\Desktop\\vsc_wnek\\WeatherStationGUI\\data.txt", "r") as file:
+                contents = file.read()
+                for line in contents:
+                    self.data_sheet.append(int(line))
+                    self.iterator += 1
+                    if self.iterator%2 == 0:
+                        break 
+                    
+                print("whatever man: ", self.data_sheet)
+                file.close()
+        except FileNotFoundError:
+            print("File not found")
+        self.application.after(5000, self.read_file)
+
         
 
 class WeatherData:
