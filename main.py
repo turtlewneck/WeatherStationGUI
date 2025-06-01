@@ -6,6 +6,7 @@ import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 import random
 import time
+from TemperatureWidget import TemperatureWidget
 
 '''DARK MODE BACKGROUND = gray14'''
 '''LIGHT MODE BACKGROUND = gray92'''
@@ -53,6 +54,10 @@ class Application(CTk):
         
         self.read_from_file.read_file()
 
+        # works
+        temp = TemperatureWidget(self)
+        temp.draw_widget(50)
+
         self.update_temperature()
         # self.draw_temperature_bar(random.random())
         # while True:
@@ -70,7 +75,8 @@ class Application(CTk):
     def update_temperature(self):
         temp = random.randint(0, 100)
         data = self.read_from_file.data_sheet
-        self.draw_temperature_bar(data[len(data)-1])
+        # self.draw_temperature_bar(data[len(data)-1])
+        self.draw_temperature_bar(temp)
         self.after(1000, self.update_temperature)
 
     def draw_temperature_bar(self, temp, max_temp=100):
@@ -108,7 +114,7 @@ class ReadFile():
         self.data_sheet = []
     def read_file(self):
         try:
-            with open("C:\\Users\\studentwftims.LAB\\Desktop\\vsc_wnek\\WeatherStationGUI\\data.txt", "r") as file:
+            with open(".\data.txt", "r") as file:
                 contents = file.read()
                 for line in contents:
                     self.data_sheet.append(int(line))
