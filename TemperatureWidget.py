@@ -6,7 +6,7 @@ class TemperatureWidget(Widget):
         # super().__init__()
     def draw_widget(self, temp, max_temp=100):
         self.app.canvas.delete("all")
-        bar_height = 100
+        bar_height = 300
         bar_width = 30
         x_offset = 100
         y_offset = 100
