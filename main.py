@@ -7,6 +7,7 @@ from ttkbootstrap.constants import *
 import random
 import time
 from TemperatureWidget import TemperatureWidget
+import math
 
 '''DARK MODE BACKGROUND = gray14'''
 '''LIGHT MODE BACKGROUND = gray92'''
@@ -18,9 +19,8 @@ class Application(CTk):
         self.geometry(f'{size[0]}x{size[1]}')
         self.minsize(size[0], size[1])
         random.seed(5)
-        # self.place_bar()
 
-
+        '''INITIALIZE READFILE CLASS'''
         self.read_from_file = ReadFile(self)
 
         # self.frame = CTkFrame(self)
@@ -28,41 +28,38 @@ class Application(CTk):
 
         self.btn = CTkButton(master=self, text="Toggle mode!", corner_radius=10, command=self.handle_toggle_mode)
         self.btn.place(relx=0.5, rely=0.5, anchor="center")
-        print("GOWNO ", self.cget("fg_color"))
-
-        self.dial = Dial(master=self, unit_length=8)
-        self.dial.place(relx=0.1, rely=0.7, anchor=CENTER)
-
-
-        bar = tb.Progressbar(master=self, bootstyle="danger-striped", length=300, maximum=100)
-        bar.pack(pady=20)
-        bar['value'] = 30 
-
+        print("help ", self.cget("fg_color"))
+    
 
         self.label = CTkLabel(master=self, text="CTkLabel", fg_color="transparent")
-        self.label.place(relx=0.6, rely=0.1, anchor=E)
+        self.label.place(relx=0.1, rely=0.1, anchor=E)
+        
 
-        # tempereature bar
-        
-        bar = CTkScrollbar(master=self, )
-        bar.place(relx=0.4, rely=0.8, anchor=CENTER)
-        
-        # self.temperature_box = CTkSlider(master=self )
-        # self.temperature_box.place(relx=0.1, rely=0.1, anchor=CENTER)
+        '''INITIALIZATION OF CANVAS'''
         self.canvas = tk.Canvas(self, width=150, height=350)
         self.canvas.pack()
         
+
+        '''READING VALUES FROM FILE'''
         self.read_from_file.read_file()
 
-        # works
-        temp = TemperatureWidget(self)
-        temp.draw_widget(50)
+
+        '''TEMPERATURE SECTION'''
+        '''This is an example usage of temperature class'''
+        # temp = TemperatureWidget(self)
+        # temp.draw_widget(50)
 
         self.update_temperature()
-        # self.draw_temperature_bar(random.random())
-        # while True:
-        
+
+
+        '''WIND SECTION'''
+        self.wind_rose = WindRoseCanvas(self, size=300)
+        self.wind_rose.pack()
+
+
+        '''MAIN LOOP - END OF THE PROGRAM'''
         self.mainloop()
+        
     
     def handle_toggle_mode(self):
         if self._get_appearance_mode() == "light":
@@ -74,7 +71,9 @@ class Application(CTk):
 
     def update_temperature(self):
         temp = random.randint(0, 100)
-        data = self.read_from_file.data_sheet
+        data = list(map(int, self.read_from_file.data_sheet))
+        # data = self.read_from_file.data_sheet
+        print("DATA inside update: ", data)
         # self.draw_temperature_bar(data[len(data)-1])
         self.draw_temperature_bar(temp)
         self.after(1000, self.update_temperature)
@@ -100,10 +99,47 @@ class Application(CTk):
         self.canvas.create_rectangle(x_offset, y_offset + bar_height - fill_height,
                                 x_offset + bar_width, y_offset + bar_height,
                                 fill="red")
-        
-        # self.after(1000, self.draw_temperature_bar(random.random()))
-        
 
+
+class WindRoseCanvas(tk.Canvas):
+    def __init__(self, parent, size=200, **kwargs):
+        super().__init__(parent, width=size, height=size, bg='white', highlightthickness=0, **kwargs)
+        self.size = size
+        self.center = size / 2
+        self.arrow_length = size * 0.4
+        self.draw_base()
+
+    def draw_base(self):
+        # Compass lines (N-S, E-W)
+        self.create_line(self.center, 0, self.center, self.size, fill='gray')
+        self.create_line(0, self.center, self.size, self.center, fill='gray')
+
+        # Direction labels
+        font = ("Arial", 10, "bold")
+        self.create_text(self.center, 10, text="N", font=font)
+        self.create_text(self.center, self.size - 10, text="S", font=font)
+        self.create_text(10, self.center, text="W", font=font)
+        self.create_text(self.size - 10, self.center, text="E", font=font)
+
+        self.update_direction()
+
+    def draw_arrow(self, degrees: float):
+        self.delete("arrow")
+        radians = math.radians(degrees - 90)
+        x = self.center + self.arrow_length * math.cos(radians)
+        y = self.center + self.arrow_length * math.sin(radians)
+
+        self.create_line(
+            self.center, self.center, x, y,
+            arrow=tk.LAST, fill='blue', width=3, tags="arrow"
+        )
+
+    def update_direction(self):
+        dir = random.randint(0, 360)
+        self.draw_arrow(dir)
+        self.after(1000, self.update_direction)
+
+        # Convert to radians and rotate -90° to make 0° = North
 
 
 class ReadFile():
@@ -115,12 +151,12 @@ class ReadFile():
     def read_file(self):
         try:
             with open(".\data.txt", "r") as file:
-                contents = file.read()
+                contents = file.readlines()
                 for line in contents:
-                    self.data_sheet.append(int(line))
-                    self.iterator += 1
-                    if self.iterator%2 == 0:
-                        break 
+                    self.data_sheet.append(line)
+                    # self.iterator += 1
+                    # if self.iterator%2 == 0:
+                    #     break 
                     
                 print("whatever man: ", self.data_sheet)
                 file.close()
@@ -142,7 +178,7 @@ class WeatherData:
     
 
 
-Application("dupa", (600, 800))
+Application("Weather Station", (600, 800))
 
 # app = CTk()
 # app.geometry("600x800")
